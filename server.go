@@ -18,7 +18,7 @@ func main() {
 
 // Dick is a struct for JSON/XML payloads responding
 // Name of properties should be capitalized
-type Dick struct {
+type dick struct {
 	Object string `json:"object" xml:"object"`
 	Owner  string `json:"owner" xml:"owner"`
 	Length string `json:"length" xml:"length"`
@@ -29,7 +29,7 @@ func getDick(context echo.Context) error {
 	owner := context.Param("owner")
 	cm, cmErr := strconv.ParseFloat(context.Param("cm"), 32)
 
-	dick := &Dick{
+	dick := &dick{
 		Object: "dick",
 		Owner:  owner,
 	}
