@@ -1,10 +1,11 @@
 package main
 
 import (
-	"net/http"
-	"github.com/labstack/echo"
-	"strconv"
 	"fmt"
+	"net/http"
+	"strconv"
+
+	"github.com/labstack/echo"
 )
 
 func main() {
@@ -15,35 +16,32 @@ func main() {
 	e.Logger.Fatal(e.Start(":9000"))
 }
 
+// Dick is a struct for JSON/XML payloads responding
+// Name of properties should be capitalized
 type Dick struct {
 	Object string `json:"object" xml:"object"`
-	Owner string `json:"owner" xml:"owner"`
+	Owner  string `json:"owner" xml:"owner"`
 	Length string `json:"length" xml:"length"`
-	Width string `json:"width" xml:"width"`
+	Width  string `json:"width" xml:"width"`
 }
 
 func getDick(context echo.Context) error {
 	owner := context.Param("owner")
 	cm, cmErr := strconv.ParseFloat(context.Param("cm"), 32)
 
-	if cmErr != nil {
-		dick := &Dick{
-			Object: "dick",
-                	Owner: owner,
-	                Length: "Bad request!",
-                	Width: "Bad request!",
-        	}
+	dick := &Dick{
+		Object: "dick",
+		Owner:  owner,
+	}
 
+	if cmErr != nil {
+		dick.Length = "Bad request! Illegal input length!"
+		dick.Width = "Bad request! Illegal input length!"
 		return context.JSON(http.StatusBadRequest, dick)
 	}
 
-	dick := &Dick{
-		Object: "dick",
-                Owner: owner,
-		Length: fmt.Sprintf("%fcm", cm),
-		Width: fmt.Sprintf("%fcm", cm/4),
-	}
+	dick.Length = fmt.Sprintf("%fcm", cm)
+	dick.Width = fmt.Sprintf("%fcm", cm/4)
 
 	return context.JSON(http.StatusAccepted, dick)
 }
-
