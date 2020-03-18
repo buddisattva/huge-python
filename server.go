@@ -1,49 +1,65 @@
 package main
 
 import (
-	"net/http"
-	"github.com/labstack/echo"
-	"strconv"
 	"fmt"
+	"net/http"
+	"strconv"
+	"strings"
+
+	"github.com/labstack/echo"
 )
 
 func main() {
 	e := echo.New()
 
-	e.GET("/v1/:owner/:cm", getDick)
+	e.GET("/v1/:name/:cm", calcDick)
 
 	e.Logger.Fatal(e.Start(":9000"))
 }
 
-type Dick struct {
-	Object string `json:"object" xml:"object"`
-	Owner string `json:"owner" xml:"owner"`
+type dick struct {
+	Type   string `json:"@type" xml:"@type"`
 	Length string `json:"length" xml:"length"`
-	Width string `json:"width" xml:"width"`
+	Width  string `json:"width" xml:"width"`
 }
 
-func getDick(context echo.Context) error {
-	owner := context.Param("owner")
+// person is a struct for JSON/XML payloads responding
+// Name of properties should be capitalized
+type person struct {
+	Type        string `json:"@type" xml:"@type"`
+	Name        string `json:"name" xml:"name"`
+	Description string `json:"description" xml:"description"`
+	Dick        dick   `json:"dick" xml:"dick"`
+}
+
+func calcDick(context echo.Context) error {
+	name := strings.Title(strings.ToLower(context.Param("name")))
 	cm, cmErr := strconv.ParseFloat(context.Param("cm"), 32)
 
+	person := &person{
+		Type: "Person",
+		Name: name,
+	}
+
 	if cmErr != nil {
-		dick := &Dick{
-			Object: "dick",
-                	Owner: owner,
-	                Length: "Bad request!",
-                	Width: "Bad request!",
-        	}
-
-		return context.JSON(http.StatusBadRequest, dick)
+		person.Description = "You don't have any dick."
+		return context.JSON(http.StatusLengthRequired, person)
 	}
 
-	dick := &Dick{
-		Object: "dick",
-                Owner: owner,
-		Length: fmt.Sprintf("%fcm", cm),
-		Width: fmt.Sprintf("%fcm", cm/4),
+	typeDick := "dick"
+	stringLength := fmt.Sprintf("%.2f", cm)
+	stringWidth := fmt.Sprintf("%.2f", cm/4)
+	dick := dick{
+		Type:   strings.Title(typeDick),
+		Length: stringLength,
+		Width:  stringWidth,
 	}
 
-	return context.JSON(http.StatusAccepted, dick)
+	person.Description =
+		name + " has a " + typeDick + " with " +
+			stringLength + "cm length and " +
+			stringWidth + " cm width."
+	person.Dick = dick
+
+	return context.JSON(http.StatusOK, person)
 }
-
